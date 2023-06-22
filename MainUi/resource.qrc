@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/toolbar">
+        <file>resource/toolbar/file.png</file>
+        <file>resource/toolbar/save.png</file>
+        <file>resource/toolbar/folder-open.png</file>
+        <file>resource/toolbar/cut.png</file>
+        <file>resource/toolbar/file-copy.png</file>
+        <file>resource/toolbar/printer.png</file>
+        <file>resource/toolbar/snippets.png</file>
+        <file>resource/toolbar/file-add.png</file>
+        <file>resource/toolbar/redo.png</file>
+        <file>resource/toolbar/undo.png</file>
+        <file>resource/toolbar/search.png</file>
+        <file>resource/toolbar/substitution.png</file>
+    </qresource>
+    <qresource prefix="/logo">
+        <file>resource/logo/logo.png</file>
+    </qresource>
+</RCC>

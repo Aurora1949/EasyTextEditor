@@ -1,0 +1,3 @@
+FILE(GLOB_RECURSE srcs include/*.h src/*.cpp)
+ADD_LIBRARY(Model STATIC ${srcs})
+TARGET_INCLUDE_DIRECTORIES(Model PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
