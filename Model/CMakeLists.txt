@@ -1,3 +1,6 @@
 FILE(GLOB_RECURSE srcs include/*.h src/*.cpp)
 ADD_LIBRARY(Model STATIC ${srcs})
+find_package(Qt6 REQUIRED COMPONENTS Core5Compat)
+TARGET_LINK_LIBRARIES(Model PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(Model PRIVATE Qt6::Core5Compat)
 TARGET_INCLUDE_DIRECTORIES(Model PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -10,6 +10,7 @@
 #include <QPrintDialog>
 #include <QPrintPreviewDialog>
 #include <QtPrintSupport>
+#include <Model/BaseDocument.h>
 #include <Model/TxtDocument.h>
 
 #include "about.h"
@@ -27,6 +28,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow();
+
+signals:
+    void checkSaveStatus();
 
 private slots:
 
@@ -70,32 +74,26 @@ private slots:
 
     void on_action_about_triggered();
 
+    void onChangeWindowTitle();
+
 private:
     Ui::MainWindow *ui;
     QString currFile;
     QString filename;
     QString fileCache;
-    QClipboard *clipboard;
+    BaseDocument *document;
     QUndoStack undoStack;
     bool isSaved;
 
-    void setTitle(QString);
-
-    void updateCache(QString);
-
-    void setTitleToNotSave();
-
-    void setTitleToNormal();
-
-    void saveFile();
-
-    void searchPlainTextEdit(QPlainTextEdit *, const QString &);
-
-    void closeEvent(QCloseEvent *) override;
+    void updateCache(QString cache);
 
     bool findNextMatch(QPlainTextEdit *, const QString &, bool, bool);
 
     bool replace(QPlainTextEdit *, const QString &, const QString &, bool, bool);
+
+    void showErrorMsg(QString);
+
+    void closeEvent(QCloseEvent *) override;
 };
 
 #endif // MAINWINDOW_H
