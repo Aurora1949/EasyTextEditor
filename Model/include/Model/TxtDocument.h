@@ -5,12 +5,15 @@
 #ifndef EASYTEXTEDITOR_TXTDOCUMENT_H
 #define EASYTEXTEDITOR_TXTDOCUMENT_H
 
-#include "Model/AbstractDocument.h"
+#include "Model/BaseDocument.h"
 
-class TxtDocument : AbstractDocument {
+class TxtDocument : public BaseDocument {
+Q_OBJECT
+
 public:
-    explicit TxtDocument(string title, string content, string extension);
-};
+    explicit TxtDocument(QString &text);
 
+    void clear() override;
+};
 
 #endif //EASYTEXTEDITOR_TXTDOCUMENT_H

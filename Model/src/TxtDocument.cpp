@@ -4,8 +4,15 @@
 
 #include "Model/TxtDocument.h"
 
-TxtDocument::TxtDocument(string title, string content, string extension) {
-    this->setTitle(title);
-    this->setContent(content);
-    this->setExtension(extension);
+TxtDocument::TxtDocument(QString &text) : BaseDocument(text) {
+    extension = ".txt";
+}
+
+void TxtDocument::clear() {
+    path.clear();
+    title = "未命名";
+    buffer.clear();
+    content.clear();
+    extension = ".txt";
+    emit changeWindowTitle();
 }
