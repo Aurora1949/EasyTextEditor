@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->clipboard = QApplication::clipboard();
     this->filename = "未命名";
     this->isSaved = true;
+    this->setAttribute(Qt::WA_QuitOnClose, true);
     setWindowTitle("未命名 - 简易记事本");
 }
 
@@ -221,6 +222,7 @@ void MainWindow::on_action_search_triggered()
     qDebug() << "Search Button Clicked";
     SearchDialog *search = new SearchDialog();
     search->setAttribute(Qt::WA_DeleteOnClose); // 在SearchDialog关闭时自动释放内存
+    search->setAttribute(Qt::WA_QuitOnClose, false);
     search->show();
     connect(search,
             SIGNAL(searchClicked(const QString &, bool, bool)),
@@ -310,6 +312,7 @@ void MainWindow::on_action_substitution_triggered()
 {
     ReplaceDialog *d = new ReplaceDialog();
     d->setAttribute(Qt::WA_DeleteOnClose);
+    d->setAttribute(Qt::WA_QuitOnClose, false);
     d->show();
     connect(d,
             SIGNAL(replaceClicked(const QString &, const QString &, bool, bool, int)),
