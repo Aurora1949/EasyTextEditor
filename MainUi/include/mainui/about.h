@@ -1,7 +1,7 @@
 #ifndef ABOUT_H
 #define ABOUT_H
 
-#ifdef DEBUG
+#ifndef QT_NO_DEBUG_OUTPUT
 #define MODE "debug"
 #else
 #define MODE "release"
