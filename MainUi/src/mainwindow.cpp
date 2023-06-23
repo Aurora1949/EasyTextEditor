@@ -3,9 +3,7 @@
 #include "./ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
+        : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
     this->setWindowIcon(QIcon(":/logo/logo.png"));
@@ -16,38 +14,32 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("未命名 - 简易记事本");
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::setTitle(QString filename)
-{
+void MainWindow::setTitle(QString filename) {
     this->filename = filename.split('/').last().split('.').front();
     this->currFile = filename;
     this->setWindowTitle(this->filename + " - 简易记事本");
 }
 
-void MainWindow::setTitleToNotSave()
-{
+void MainWindow::setTitleToNotSave() {
     this->setWindowTitle("● " + (this->filename.isEmpty() ? "未命名" : this->filename)
                          + " - 简易记事本");
     this->isSaved = false;
 }
 
-void MainWindow::setTitleToNormal()
-{
+void MainWindow::setTitleToNormal() {
     this->setWindowTitle((this->filename.isEmpty() ? "未命名" : this->filename) + " - 简易记事本");
     this->isSaved = true;
 }
 
-void MainWindow::updateCache(QString cache)
-{
+void MainWindow::updateCache(QString cache) {
     this->fileCache = cache;
 }
 
-void MainWindow::on_action_open_triggered()
-{
+void MainWindow::on_action_open_triggered() {
     qDebug() << "Open File Button Clicked";
     QString filename = QFileDialog::getOpenFileName(this, "打开文件", "", "文本文件 (*.txt)");
     if (filename.isEmpty())
@@ -76,8 +68,7 @@ void MainWindow::on_action_open_triggered()
     file.close();
 }
 
-void MainWindow::on_action_save_triggered()
-{
+void MainWindow::on_action_save_triggered() {
     qDebug() << "Save File Button Clicked";
 
     if (!this->currFile.isEmpty() && (this->fileCache == this->ui->plainTextEdit->toPlainText())) {
@@ -111,8 +102,7 @@ void MainWindow::on_action_save_triggered()
     file.close();
 }
 
-void MainWindow::on_plainTextEdit_textChanged()
-{
+void MainWindow::on_plainTextEdit_textChanged() {
     this->undoStack.push(new QUndoCommand(this->ui->plainTextEdit->toPlainText()));
     if (this->fileCache == this->ui->plainTextEdit->toPlainText()) {
         this->setTitleToNormal();
@@ -121,8 +111,7 @@ void MainWindow::on_plainTextEdit_textChanged()
     this->setTitleToNotSave();
 }
 
-void MainWindow::on_action_save_as_triggered()
-{
+void MainWindow::on_action_save_as_triggered() {
     qDebug() << "Save File As Button Clicked";
     QString filename = QFileDialog::getSaveFileName(this, "另存为", "", "文本文件 (*.txt)");
 
@@ -147,11 +136,10 @@ void MainWindow::on_action_save_as_triggered()
     file.close();
 }
 
-void MainWindow::on_action_printer_triggered()
-{
+void MainWindow::on_action_printer_triggered() {
     qDebug() << "Print Button Clicked";
     QPrinter printer(QPrinter::HighResolution);
-    QPrintDialog *dialog = new QPrintDialog(&printer, this);
+    QPrintDialog * dialog = new QPrintDialog(&printer, this);
     if (dialog->exec() == QDialog::Accepted) {
         QTextDocument document;
         document.setPlainText(this->ui->plainTextEdit->toPlainText());
@@ -159,35 +147,31 @@ void MainWindow::on_action_printer_triggered()
     }
 }
 
-void MainWindow::on_action_cut_triggered()
-{
+void MainWindow::on_action_cut_triggered() {
     qDebug() << "Cut Button Clicked";
     this->ui->plainTextEdit->cut();
 }
 
-void MainWindow::on_action_copy_triggered()
-{
+void MainWindow::on_action_copy_triggered() {
     qDebug() << "Copy Button Clicked";
     this->ui->plainTextEdit->copy();
 }
 
-void MainWindow::on_action_paste_triggered()
-{
+void MainWindow::on_action_paste_triggered() {
     qDebug() << "Paste Button Clicked";
     this->ui->plainTextEdit->paste();
 }
 
-void MainWindow::on_action_new_triggered()
-{
+void MainWindow::on_action_new_triggered() {
     qDebug() << "New File Button Clicked";
     if (!isSaved) {
         QMessageBox::StandardButton saveCheck
-            = QMessageBox::question(this,
-                                    "未保存",
-                                    "此文件尚未保存，是否将更改保存到“" + this->filename
+                = QMessageBox::question(this,
+                                        "未保存",
+                                        "此文件尚未保存，是否将更改保存到“" + this->filename
                                         + ".txt”中？",
-                                    QMessageBox::Save | QMessageBox::Cancel,
-                                    QMessageBox::Save);
+                                        QMessageBox::Save | QMessageBox::Cancel,
+                                        QMessageBox::Save);
         if (saveCheck == QMessageBox::Save) {
             this->on_action_save_triggered();
         }
@@ -199,39 +183,36 @@ void MainWindow::on_action_new_triggered()
     this->filename = "未命名";
 }
 
-void MainWindow::on_action_close_triggered()
-{
+void MainWindow::on_action_close_triggered() {
     qDebug() << "Close Button Clicked";
     this->on_action_new_triggered();
 }
 
-void MainWindow::on_action_undo_triggered()
-{
+void MainWindow::on_action_undo_triggered() {
     qDebug() << "Undo Button Clicked";
     this->ui->plainTextEdit->undo();
 }
 
-void MainWindow::on_action_redo_triggered()
-{
+void MainWindow::on_action_redo_triggered() {
     qDebug() << "Redo Button Clicked";
     this->ui->plainTextEdit->redo();
 }
 
-void MainWindow::on_action_search_triggered()
-{
+void MainWindow::on_action_search_triggered() {
     qDebug() << "Search Button Clicked";
     SearchDialog *search = new SearchDialog();
     search->setAttribute(Qt::WA_DeleteOnClose); // 在SearchDialog关闭时自动释放内存
     search->setAttribute(Qt::WA_QuitOnClose, false);
     search->show();
     connect(search,
-            SIGNAL(searchClicked(const QString &, bool, bool)),
-            this,
-            SLOT(onSearchClicked(const QString &, bool, bool)));
+            SIGNAL(searchClicked(
+    const QString &, bool, bool)),
+    this,
+            SLOT(onSearchClicked(
+    const QString &, bool, bool)));
 }
 
-void MainWindow::onSearchClicked(const QString &text, bool isWord, bool isCap)
-{
+void MainWindow::onSearchClicked(const QString &text, bool isWord, bool isCap) {
     if (!findNextMatch(this->ui->plainTextEdit, text, isWord, isCap)) {
         QMessageBox::information(this, "提示", "未找到匹配的文本。");
     }
@@ -240,8 +221,7 @@ void MainWindow::onSearchClicked(const QString &text, bool isWord, bool isCap)
 bool MainWindow::findNextMatch(QPlainTextEdit *plainTextEdit,
                                const QString &searchText,
                                bool wholeWords,
-                               bool caseSensitivity)
-{
+                               bool caseSensitivity) {
     QTextCursor cursor = plainTextEdit->textCursor(); // 获取当前光标位置
     QTextDocument::FindFlags flags;
     if (wholeWords) {
@@ -261,8 +241,7 @@ bool MainWindow::findNextMatch(QPlainTextEdit *plainTextEdit,
     return plainTextEdit->find(searchText, flags); // 查找下一个匹配的文本
 }
 
-void MainWindow::searchPlainTextEdit(QPlainTextEdit *textEdit, const QString &keyword)
-{
+void MainWindow::searchPlainTextEdit(QPlainTextEdit *textEdit, const QString &keyword) {
     QTextCursor cursor(textEdit->document());
 
     while (!cursor.isNull() && !cursor.atEnd()) {
@@ -278,8 +257,7 @@ void MainWindow::searchPlainTextEdit(QPlainTextEdit *textEdit, const QString &ke
     }
 }
 
-void MainWindow::closeEvent(QCloseEvent *ev)
-{
+void MainWindow::closeEvent(QCloseEvent *ev) {
     if (!isSaved) {
         QMessageBox msgBox(QMessageBox::Warning,
                            "关闭",
@@ -308,25 +286,27 @@ void MainWindow::closeEvent(QCloseEvent *ev)
     ev->accept();
 }
 
-void MainWindow::on_action_substitution_triggered()
-{
+void MainWindow::on_action_substitution_triggered() {
     ReplaceDialog *d = new ReplaceDialog();
     d->setAttribute(Qt::WA_DeleteOnClose);
     d->setAttribute(Qt::WA_QuitOnClose, false);
     d->show();
     connect(d,
-            SIGNAL(replaceClicked(const QString &, const QString &, bool, bool, int)),
-            this,
-            SLOT(onReplaceClicked(const QString &, const QString &, bool, bool, int)));
+            SIGNAL(replaceClicked(
+    const QString &, const QString &, bool, bool, int)),
+    this,
+            SLOT(onReplaceClicked(
+    const QString &, const QString &, bool, bool, int)));
     connect(d,
-            SIGNAL(searchClicked(const QString &, bool, bool)),
-            this,
-            SLOT(onSearchClicked(const QString &, bool, bool)));
+            SIGNAL(searchClicked(
+    const QString &, bool, bool)),
+    this,
+            SLOT(onSearchClicked(
+    const QString &, bool, bool)));
 }
 
 void MainWindow::onReplaceClicked(
-    const QString &reg, const QString &text, bool isWords, bool isCap, int type = 0)
-{
+        const QString &reg, const QString &text, bool isWords, bool isCap, int type = 0) {
     qDebug() << "Replace Start. Type" << type;
     QTextCursor cursor = ui->plainTextEdit->textCursor();
 
@@ -334,6 +314,12 @@ void MainWindow::onReplaceClicked(
     do {
         flag = replace(ui->plainTextEdit, reg, text, isWords, isCap);
     } while (flag && type);
+
+    if (type) {
+        QMessageBox::information(this, "替换", "全部替换完成");
+    } else if (!type && !flag) {
+        QMessageBox::information(this, "替换", "没有更多的匹配文本了。");
+    }
 }
 
 bool MainWindow::replace(QPlainTextEdit *plainTextEdit,
@@ -342,42 +328,45 @@ bool MainWindow::replace(QPlainTextEdit *plainTextEdit,
                          bool isWords,
                          bool isCap)
 {
-    QTextCursor cursor = ui->plainTextEdit->textCursor();
+    QTextCursor cursor;
     if (findNextMatch(plainTextEdit, reg, isWords, isCap)) {
-        cursor.removeSelectedText();
-        cursor.insertText(text);
+        cursor = plainTextEdit->textCursor();
+        cursor.beginEditBlock();
+        if (cursor.hasSelection()) {
+            qDebug() << "Selected Text is: " << cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertText(text);
+        }
+        cursor.endEditBlock();
         return true;
     }
     return false;
 }
 
-void MainWindow::on_action_amplify_triggered()
-{
+void MainWindow::on_action_amplify_triggered() {
     QFont font = ui->plainTextEdit->font();
     int fontSize = font.pointSize();
     font.setPointSize(++fontSize);
     ui->plainTextEdit->setFont(font);
 }
 
-void MainWindow::on_action_reduce_triggered()
-{
+void MainWindow::on_action_reduce_triggered() {
     QFont font = ui->plainTextEdit->font();
     int fontSize = font.pointSize();
     font.setPointSize(--fontSize);
     ui->plainTextEdit->setFont(font);
 }
 
-void MainWindow::on_action_reset_scale_triggered()
-{
+void MainWindow::on_action_reset_scale_triggered() {
     QFont font = ui->plainTextEdit->font();
     int fontSize = 9;
     font.setPointSize(fontSize);
     ui->plainTextEdit->setFont(font);
 }
 
-void MainWindow::on_action_about_triggered()
-{
+void MainWindow::on_action_about_triggered() {
     About *a = new About();
     a->setAttribute(Qt::WA_DeleteOnClose);
+    a->setAttribute(Qt::WA_QuitOnClose, false);
     a->show();
 }
