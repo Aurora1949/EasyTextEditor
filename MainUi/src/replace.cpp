@@ -1,8 +1,8 @@
-#include "mainui/replace.h"
+#include <MainUi/ReplaceUi>
 #include "ui_replace.h"
 
 ReplaceDialog::ReplaceDialog(QWidget *parent) :
-    QWidget(parent),
+    QWidget(parent, Qt::WindowStaysOnTopHint | Qt::Widget),
     ui(new Ui::ReplaceDialog)
 {
     ui->setupUi(this);

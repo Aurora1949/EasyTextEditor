@@ -12,6 +12,7 @@
         <file>resource/toolbar/undo.png</file>
         <file>resource/toolbar/search.png</file>
         <file>resource/toolbar/substitution.png</file>
+        <file>resource/toolbar/setting.png</file>
     </qresource>
     <qresource prefix="/logo">
         <file>resource/logo/logo.png</file>

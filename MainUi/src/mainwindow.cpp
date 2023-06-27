@@ -1,25 +1,150 @@
 
-#include <mainui/mainwindow.h>
+#include <MainUi/MainWindowUi>
+#include <MainUi/SQL>
 #include "./ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent, const char *path)
+        : QMainWindow(parent), ui(new Ui::MainWindow), path(path) {
     // Init Part
     ui->setupUi(this);
-    document = new TxtDocument(this->fileCache);
-    setWindowTitle(document->getTitle() + document->getExtension() + " - 简易记事本");
-    setAttribute(Qt::WA_QuitOnClose, true);
+    init();
+
     // Connect Part
     connect(this, SIGNAL(checkSaveStatus()), document, SLOT(changeSaveStatus()));
     connect(document, SIGNAL(changeWindowTitle()), this, SLOT(onChangeWindowTitle()));
+
     // Settings Part
     this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);  // 设置内边距全为0
+    this->setAttribute(Qt::WA_QuitOnClose, true);
     this->setWindowIcon(QIcon(":/logo/resource/logo/logo.png"));
 }
 
 MainWindow::~MainWindow() {
     delete ui;
     delete document;
+}
+
+void MainWindow::init() {
+    // if a file path have been given,
+    // call initWithAExistFile. In this part
+    // we can make sure document is exist.
+    if (path != nullptr)
+        initWithAExistFile(path);
+    else
+        initWithANewTxtFile();
+    onChangeWindowTitle();
+
+    // init db
+    initSettingDB();
+
+    // add recent history to menu
+    this->recentList = new QMenu("最近打开的文件", this);
+    ui->menu->addMenu(recentList);
+    addHistoryAction();
+
+    // init statusbar
+    ui->statusbar->setSizeGripEnabled(false); // 去除状态栏右下角的三角形
+    // 文件编码
+    QLabel *encodeText = new QLabel(this);
+    encodeText->setText(document->getAnEncode());
+    ui->statusbar->addPermanentWidget(encodeText);
+    // 指针位置
+}
+
+void MainWindow::initWithANewTxtFile() {
+    document = new TxtDocument(fileCache);
+}
+
+void MainWindow::initWithAExistFile(const char *filePath) {
+    document = new BaseDocument(fileCache);
+    document->setDocument(filePath);
+    QString ext = document->getExtension();
+    delete document;
+    if (ext == "txt") {
+        document = new TxtDocument(fileCache);
+    } else if (ext == "c" || ext == "h" || ext == "cpp" || ext == "hpp") {
+        document = new BaseDocument(fileCache);
+    } else {
+        document = new BaseDocument(fileCache);
+    }
+    openFile(filePath, true);
+}
+
+void MainWindow::initSettingDB() {
+    QFile dbFile(DATABASE_LOCATION);
+    CppSQLite3DB db;
+    // check if db exists.
+    // if exist then we load settings from it,
+    // else we create a new one.
+    if (dbFile.open(QIODevice::ReadOnly)) {
+        dbFile.close();
+        try {
+            db.open(DATABASE_LOCATION);
+            CppSQLite3Query query = db.execQuery(LOAD_SETTINGS);
+            fs.families = QString(query.getStringField(2)).split(',');
+            fs.fontSize = query.getIntField(0);
+            fs.fontStyle = query.getIntField(1);
+            ui->plainTextEdit->setFont(getQFontFromFontSetting(fs));
+            query.finalize();
+            db.close();
+        } catch (CppSQLite3Exception &e) {
+            QMessageBox::critical(this, "DB Failed", e.errorMessage());
+        }
+    } else {
+        try {
+            db.open(DATABASE_LOCATION);
+            db.execDML(CREATE_TABLE_SETTINGS);
+            db.execDML(CREATE_TABLE_HISTORY);
+            db.execDML(SET_INIT_SETTINGS);
+            db.close();
+        } catch (CppSQLite3Exception &exception) {
+            QMessageBox::critical(this, "DB Failed", exception.errorMessage());
+        }
+    }
+}
+
+void MainWindow::addHistoryAction() {
+    CppSQLite3DB db;
+    try {
+        db.open(DATABASE_LOCATION);
+        CppSQLite3Query q = db.execQuery(LOAD_ALL_HISTORY);
+        QAction *action;
+        while (!q.eof()) {
+            action = new QAction(q.getStringField(0));
+            qDebug() << "Action" << action;
+            recentList->addAction(action);
+            connect(action, SIGNAL(triggered()), this, SLOT(onHistoryClicked()));
+            q.nextRow();
+        }
+        q.finalize();
+        db.close();
+    } catch (CppSQLite3Exception &e) {
+        QMessageBox::critical(this, "DB Failed", e.errorMessage());
+    }
+}
+
+void MainWindow::onHistoryClicked() {
+    QAction *action = qobject_cast<QAction *>(sender());
+    openFile(action->text().toStdString().c_str());
+}
+
+void MainWindow::saveSettings() {
+    CppSQLite3DB db;
+    try {
+        db.open(DATABASE_LOCATION);
+        CppSQLite3Statement stmt = db.compileStatement(SET_SETTINGS);
+        QFont font = ui->plainTextEdit->font();
+        stmt.bind(1, font.pointSize());
+        int value = font.bold() ? (font.italic() ? 3 : 2) : font.italic() ? 1 : 0;
+        stmt.bind(2, value);
+        stmt.bind(3, font.families().join(',').toStdString().c_str());
+        stmt.execDML();
+        stmt.finalize();
+        db.close();
+    } catch (CppSQLite3Exception &e) {
+        // DO NOTHING HERE
+        db.close();
+    }
 }
 
 void MainWindow::onChangeWindowTitle() {
@@ -37,10 +162,37 @@ void MainWindow::on_action_open_triggered() {
     QString filename = QFileDialog::getOpenFileName(this, "打开文件", "", "文本文件 (*.txt)");
     if (filename.isEmpty())
         return;
+    openFile(filename.toStdString().c_str());
+}
 
-    this->document->setDocument(filename);
+void MainWindow::openFile(const char *filePath, bool useLocal) {
+    QString u8filePath;
+    // if filePath contain chinese we change encoding to gbk
+    if (useLocal)
+        u8filePath = QString::fromLocal8Bit(filePath);
+    else
+        u8filePath = QString(filePath);
+    // if path contain '\' we replace it to '/'
+    u8filePath.replace('\\', '/');
+
+    addHistory(u8filePath.toStdString().c_str());
+    this->document->setDocument(u8filePath);
     this->ui->plainTextEdit->setPlainText(document->getContent());
     this->ui->statusbar->showMessage("当前打开文件: " + document->getPath());
+}
+
+void MainWindow::addHistory(const char *filePath) {
+    CppSQLite3DB db;
+    try {
+        db.open(DATABASE_LOCATION);
+        CppSQLite3Statement stmt = db.compileStatement(INSERT_NEW_HISTORY);
+        stmt.bind(1, filePath);
+        stmt.execDML();
+        stmt.finalize();
+        db.close();
+    } catch (CppSQLite3Exception &e) {
+        QMessageBox::critical(this, "DB Failed", e.errorMessage());
+    }
 }
 
 void MainWindow::on_action_save_triggered() {
@@ -160,6 +312,7 @@ void MainWindow::on_action_search_triggered() {
 }
 
 void MainWindow::onSearchClicked(const QString &text, bool isWord, bool isCap) {
+    this->activateWindow();
     if (text.isEmpty()) {
         return;
     }
@@ -196,7 +349,8 @@ void MainWindow::closeEvent(QCloseEvent *ev) {
     if (!document->isSaved()) {
         QMessageBox msgBox(QMessageBox::Warning,
                            "关闭",
-                           "此文件尚未保存，是否将更改保存到“" + document->getTitle() + document->getExtension() + "”中？");
+                           "此文件尚未保存，是否将更改保存到“" + document->getTitle() + document->getExtension() +
+                           "”中？");
         QPushButton *saveButton = msgBox.addButton(tr("保存"), QMessageBox::AcceptRole);
         QPushButton *discardButton = msgBox.addButton(tr("不保存"), QMessageBox::DestructiveRole);
         QPushButton *cancelButton = msgBox.addButton(tr("取消"), QMessageBox::RejectRole);
@@ -207,17 +361,16 @@ void MainWindow::closeEvent(QCloseEvent *ev) {
             // 执行保存操作
             qDebug("Saving...");
             on_action_save_triggered();
-            ev->accept();
         } else if (msgBox.clickedButton() == discardButton) {
             // 不保存，直接关闭窗口
             qDebug("Discarding...");
-            ev->accept();
         } else {
             // 取消关闭操作
             ev->ignore();
         }
         return;
     }
+    saveSettings();
     ev->accept();
 }
 
@@ -307,4 +460,40 @@ void MainWindow::on_action_about_triggered() {
 
 void MainWindow::showErrorMsg(QString msg) {
     QMessageBox::critical(this, "错误", msg);
+}
+
+void MainWindow::on_action_settings_triggered() {
+    SettingDialog *sd = new SettingDialog(fs);
+    sd->setAttribute(Qt::WA_DeleteOnClose);
+    sd->setAttribute(Qt::WA_QuitOnClose, false);
+    connect(sd, SIGNAL(submitFontSetting(FontSetting)), this, SLOT(acceptFontSetting(FontSetting)));
+    sd->show();
+}
+
+QFont MainWindow::getQFontFromFontSetting(const FontSetting &fs) {
+    QStringList lst = fs.families;
+    QFont font(lst);
+    int fontStyle = fs.fontStyle;
+    int fontSize = fs.fontSize;
+    switch (fontStyle) {
+        case 1:
+            font.setBold(true);
+            break;
+        case 2:
+            font.setItalic(true);
+            break;
+        case 3:
+            font.setBold(true);
+            font.setItalic(true);
+            break;
+        default:
+            break;
+    }
+    font.setPointSize(fontSize);
+    return font;
+}
+
+void MainWindow::acceptFontSetting(const FontSetting &fs) {
+    QFont font = getQFontFromFontSetting(this->fs);
+    ui->plainTextEdit->setFont(font);
 }

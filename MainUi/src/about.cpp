@@ -1,4 +1,5 @@
-#include <mainui/about.h>
+#include <MainUi/AboutUi>
+#include <SQLIteSupport/SQLite3>
 #include "ui_about.h"
 
 About::About(QWidget *parent) :
@@ -13,6 +14,7 @@ About::About(QWidget *parent) :
         QString("%1.%2.%3-%4").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_PATCH).arg(MODE));
 
     ui->qtVersion->setText(QString("Qt版本：%1").arg(qVersion()));
+    ui->sqliteVersion->setText(QString("SQLite版本：%1").arg(CppSQLite3DB::SQLiteVersion()));
     ui->compileTime->setText(__TIMESTAMP__);
 }
 

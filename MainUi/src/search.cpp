@@ -1,8 +1,8 @@
-#include "mainui/search.h"
+#include <MainUi/SearchUi>
 #include "./ui_search.h"
 
 SearchDialog::SearchDialog(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent, Qt::Widget | Qt::WindowStaysOnTopHint)
     , ui(new Ui::SearchDialog)
 {
     ui->setupUi(this);

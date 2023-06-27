@@ -7,6 +7,7 @@
 BaseDocument::BaseDocument(QString &ref) : content(ref) {
     title = "未命名";
     saveStatus = true;
+    encode = "UTF-8";
 }
 
 BaseDocument::~BaseDocument() {
@@ -88,6 +89,12 @@ void BaseDocument::setDocument(QString path) {
     QFile f(path);
     if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&f);
+        // TODO: Bug a lot
+        //auto encoding = QStringConverter::encodingForData(f.readAll());
+        //if (encoding.has_value()){
+        //    qDebug() << encoding.value();
+        //    in.setEncoding(static_cast<QStringConverter::Encoding>(encoding.value()));
+        //}
         this->content = this->buffer = in.readAll();
         this->encode = QStringConverter::nameForEncoding(in.encoding());
         f.close();
