@@ -1,5 +1,6 @@
 #include <MainUi/AboutUi>
 #include <SQLIteSupport/SQLite3>
+#include <QDateTime>
 #include "ui_about.h"
 
 About::About(QWidget *parent) :
@@ -15,7 +16,7 @@ About::About(QWidget *parent) :
 
     ui->qtVersion->setText(QString("Qt版本：%1").arg(qVersion()));
     ui->sqliteVersion->setText(QString("SQLite版本：%1").arg(CppSQLite3DB::SQLiteVersion()));
-    ui->compileTime->setText(__TIMESTAMP__);
+    ui->compileTime->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
 }
 
 About::~About()

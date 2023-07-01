@@ -3,7 +3,7 @@ FILE(GLOB_RECURSE srcs include/*.h src/*.cpp)
 SET(CMAKE_AUTORCC OFF)
 SET(CMAKE_AUTOUIC OFF)
 
-SET(CMAKE_PREFIX_PATH "D:\\Development\\Qt\\6.5.0\\mingw_64")
+SET(CMAKE_PREFIX_PATH "D:\\Development\\Qt\\6.5.1\\mingw_64")
 FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core)
 
 ADD_LIBRARY(Model STATIC ${srcs})

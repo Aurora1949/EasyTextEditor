@@ -15,7 +15,7 @@ configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/include/MainUi/version.h"
 )
 
-SET(CMAKE_PREFIX_PATH "D:\\Development\\Qt\\6.5.0\\mingw_64")
+SET(CMAKE_PREFIX_PATH "D:\\Development\\Qt\\6.5.1\\mingw_64")
 
 FIND_PACKAGE(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 FIND_PACKAGE(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets PrintSupport)

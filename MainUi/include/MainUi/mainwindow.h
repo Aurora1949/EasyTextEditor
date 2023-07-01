@@ -4,7 +4,7 @@
 
 #ifndef QT_NO_DEBUG_OUTPUT
 // change db file to your source dir if you want.
-#define DATABASE_LOCATION "../../data.db"
+#define DATABASE_LOCATION "../../../data.db"
 #else
 #define DATABASE_LOCATION "D:\\TextEditor\\data.db"
 #endif
@@ -28,7 +28,7 @@
 #include <Model/TxtDocument.h>
 #include <Model/Setting.h>
 
-#include <SQLIteSupport/SQLite3>
+#include <SQLiteSupport/SQLite3>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -108,8 +108,6 @@ private:
     FontSetting fs;
     //CppSQLite3DB db;
 
-    bool isSaved;
-
     void updateCache(QString cache);
 
     bool findNextMatch(QPlainTextEdit *, const QString &, bool, bool);
@@ -133,8 +131,6 @@ private:
     void saveSettings();
 
     void addHistoryAction();
-
-    void addHistory();
 
     void addHistory(const char *filePath);
 
